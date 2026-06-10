@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/swiftride
+    username: root
+    password: test
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+jwt:
+  secret: MySecretKeyForSwiftRideApplication123456789
+  expiration: 86400000
