@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.swiftride.kafka.BookingEvent;
+import com.swiftride.kafka.BookingProducer;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +25,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
     private final BusRepository busRepository;
+    private final BookingProducer bookingProducer;
 
     public Booking bookTicket(BookingRequest request) {
 
@@ -64,7 +67,19 @@ public class BookingService {
                 .status("CONFIRMED")
                 .build();
 
-        return bookingRepository.save(booking);
+        Booking savedBooking =
+                bookingRepository.save(booking);
+
+        BookingEvent event =
+                new BookingEvent(
+                        savedBooking.getBookingId(),
+                        user.getUserId(),
+                        bus.getBusId(),
+                        savedBooking.getSeatCount());
+
+        bookingProducer.sendBookingEvent(event);
+
+        return savedBooking;
     }
 
     public List<Booking> getBookingsByUser(Long userId) {
